@@ -25,11 +25,14 @@ public class CallbackExample {
   }
 
   public static void main(String[] args) {
-    CompletableFuture<Void> cfv =
+    CompletableFuture<String> cfs =
         CompletableFuture.supplyAsync(() -> "Hello")
             .thenApplyAsync(s -> s + ".txt")
-            .thenComposeAsync(s -> osCallToLongRunning(s))
-            .thenAcceptAsync(s -> System.out.println("Final answer: " + s));
+            .thenComposeAsync(s -> osCallToLongRunning(s));
+    while (!cfs.isDone())
+      ;
+    CompletableFuture<Void> cfv = cfs.thenAcceptAsync(s -> System.out.println("Final answer: " + s));
+    cfs.thenAcceptAsync(s -> System.out.println("Another report" + s));
     System.out.println("Pipeline constructed");
     cfv.join();
     System.out.println("Pipeline completed");
